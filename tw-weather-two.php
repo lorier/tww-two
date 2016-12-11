@@ -60,7 +60,7 @@ if(!class_exists('TW_Weather_Two'))
 
             // ACF 
             require_once(sprintf("%s/includes/tw-weather-acf.php", dirname(__FILE__)));
-            $tw_acf = new TW_Weather_Acf();
+            $tw_acf = new TW_Weather_Acf($settings);
 
             add_action( 'wp_enqueue_scripts', function() { TW_Weather_Two::add_scripts(); } );
 			add_action( 'wp_enqueue_scripts', array(&$this, 'localize_scripts' ) );

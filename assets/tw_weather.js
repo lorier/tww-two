@@ -55,6 +55,7 @@ jQuery(document).ready(function($){
 			success: function( data ) {
 				console.log ("Data returned from the API call: " + data.toString());
 				
+				// weatherStatus = data;
 				weatherStatus = parseJson(data);
 				if(typeof weatherStatus === 'object'){
 					$('.header-image p.status').replaceWith('<p class="status">Today is ' + date +  '. Current Seattle weather at ' + time + ' is <br/><span class="details">' + weatherStatus.weather[0].main + ' (' + weatherStatus.weather[0].description + '). Temp: ' + parseInt(weatherStatus.main.temp) + '&deg; </span></p>');

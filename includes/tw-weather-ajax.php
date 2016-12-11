@@ -63,10 +63,15 @@ class TW_Weather_Ajax {
 		$response = $this->request_data( $url );
 
 		$conditions = $this->parse_conditions( $response );
-		 exit($response);
+		//attempted fix for dataTyep:"json" not working. didn't work
+		// header( "Content-Type: application/json; charset=utf-8" );
+
+		 // exit($response);
 		// exit($conditions);
+		wp_die($response);
 	}
 
+	//get only the condition we want
 	private function parse_conditions( $response = null) {
 		$obj = json_decode($response);
 		$cond = $obj->weather[0]->id;
@@ -92,7 +97,7 @@ class TW_Weather_Ajax {
 		$cache_key = substr( 'lr_'.sha1($url) , 0, 44 );
 
 		// for dev purposes - quickly remove transient rows from db
-		// delete_transient( $cache_key );
+		delete_transient( $cache_key );
 
 		$response = get_transient( $cache_key );
 
