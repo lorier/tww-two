@@ -31,18 +31,19 @@ class TW_Weather_Ajax {
 
 //from Wunderground_Ajax class
 
-
 	private $cache = true;
 
 	private $response;
+
+	public $image_set = array('test');
+
+	private $acf;
 
 	// private $image_data = new stdClass();
 
 	
 	public function __construct(){
-		// add_action( 'wp_ajax_lr_wapp', array(&$this, 'lr_weather_data') ); //The wp_ajax_ hook follows the format "wp_ajax_$youraction", where $youraction is your AJAX request's 'action' property
-		// add_action( 'wp_ajax_nopriv_lr_wapp', array(&$this, 'lr_weather_data') ); //handle AJAX requests on the front-end for unauthenticated users
-
+		// echo 'From Ajax construct: ';
 	}
 
 	public function lr_weather_data() {
@@ -52,30 +53,37 @@ class TW_Weather_Ajax {
 
 		wp_create_nonce('lr_wapp_nc');
 
-		
-		//local for testing
-		// $url = add_query_arg( array(
-		// 	'query' => urlencode( stripslashes_deep( $_REQUEST['query'] ) ),
-		// ), 'http://localhost:3000/weather' );
-		// $image_data->"cloudy" = "cloudy url";
 		$url = 'http://api.openweathermap.org/data/2.5/weather?id=5809844&APPID=b9c8b98edac6dbd2d1d24df4fbad6072&units=imperial' ;
-		// $response = 'bypass the url function';
 		$response = $this->request_data( $url );
+		if(!$this->isJson($response)){
+			return;
+		}else{
+			$conditions = $this->parse_conditions( $response );
+			print_r($conditions);	
+			// get image data	
+			$images = $this->get_images();
+			print_r($images);
+		}
 
-		$conditions = $this->parse_conditions( $response );
 		//attempted fix for dataTyep:"json" not working. didn't work
 		// header( "Content-Type: application/json; charset=utf-8" );
 
-		 // exit($response);
+		// exit($response);
 		// exit($conditions);
 		wp_die($response);
 	}
 
+	private function get_images(){
+		////// THIS WORKS FOR BRINGING IN ACF DATA ////////////
+		$acf = new TW_Weather_Acf;
+		$image_set = $acf->tw_get_fields();
+		return($image_set);
+	}
 	//get only the condition we want
 	private function parse_conditions( $response = null) {
 		$obj = json_decode($response);
 		$cond = $obj->weather[0]->id;
-	 	return $cond;
+	 	echo $cond;
 	}
 
 	/**
@@ -97,7 +105,7 @@ class TW_Weather_Ajax {
 		$cache_key = substr( 'lr_'.sha1($url) , 0, 44 );
 
 		// for dev purposes - quickly remove transient rows from db
-		delete_transient( $cache_key );
+		// delete_transient( $cache_key );
 
 		$response = get_transient( $cache_key );
 
@@ -138,6 +146,10 @@ class TW_Weather_Ajax {
 		// $this->display_url_contents($response);
 		return stripslashes_deep( $response );
 	}
+	private function isJson($string) {
+		 json_decode($string);
+		 return (json_last_error() == JSON_ERROR_NONE);
+	}
 }
-
-new TW_Weather_Ajax;
+//instantiation not needed for ajax to show up - lr
+// new TW_Weather_Ajax();
