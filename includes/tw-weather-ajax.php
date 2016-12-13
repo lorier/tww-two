@@ -55,14 +55,17 @@ class TW_Weather_Ajax {
 
 		$url = 'http://api.openweathermap.org/data/2.5/weather?id=5809844&APPID=b9c8b98edac6dbd2d1d24df4fbad6072&units=imperial' ;
 		$response = $this->request_data( $url );
+		
 		if(!$this->isJson($response)){
 			return;
 		}else{
 			$conditions = $this->parse_conditions( $response );
-			print_r($conditions);	
+			
 			// get image data	
 			$images = $this->get_images();
-			print_r($images);
+
+			$response = array_merge($conditions, $images);
+			$response = json_encode($response, JSON_UNESCAPED_SLASHES);
 		}
 
 		//attempted fix for dataTyep:"json" not working. didn't work
@@ -79,11 +82,13 @@ class TW_Weather_Ajax {
 		$image_set = $acf->tw_get_fields();
 		return($image_set);
 	}
+
 	//get only the condition we want
 	private function parse_conditions( $response = null) {
 		$obj = json_decode($response);
-		$cond = $obj->weather[0]->id;
-	 	echo $cond;
+		$cond['condition'] = $obj->weather[0]->id;
+
+	 	return $cond;
 	}
 
 	/**

@@ -53,7 +53,8 @@ jQuery(document).ready(function($){
 				_wpnonce: Wapp._wpnonce
 			},
 			success: function( data ) {
-				console.log ("Data returned from the API call: " + data.toString());
+				// console.log ("Data returned from the API call: " + data.toString());
+				console.log(data.toString());
 				
 				// weatherStatus = data;
 				weatherStatus = parseJson(data);
