@@ -56,16 +56,9 @@ if(!class_exists('TW_Weather_Two'))
             require_once(sprintf("%s/includes/settings.php", dirname(__FILE__)));
             $settings = new TW_Weather_Two_Settings($plugin);
 
-            require_once(sprintf("%s/includes/tw-weather-acf.php", dirname(__FILE__)));
-            // $tw_acf = new TW_Weather_Acf();
-
             // Ajax 
             require_once(sprintf("%s/includes/tw-weather-ajax.php", dirname(__FILE__)));
             $tw_ajax = new TW_Weather_Ajax();
-
-            // ACF 
-            // add_action('init', array(&$this, 'run_ajax' ), 9  );
-            // add_action('init', array(&$this, 'run_acf' ), 10  );
 
             add_action( 'wp_enqueue_scripts', function() { TW_Weather_Two::add_scripts(); } );
 			add_action( 'wp_enqueue_scripts', array(&$this, 'localize_scripts' ) );
@@ -86,15 +79,6 @@ if(!class_exists('TW_Weather_Two'))
 				'is_admin' => is_admin()
 			));
 		}
-		// public function run_acf(){
-  //           $this->tw_acf = new TW_Weather_Acf();
-  //           // echo ('From main plugin: ');
-  //           // print_r($this->tw_acf->tw_get_fields());
-		// }
-		// public function run_ajax(){
-  //           $this->tw_ajax = new TW_Weather_Ajax($this->tw_acf);
-  //           // echo ('From main plugin: ');
-		// }
 		/**
 		 * Activate the plugin
 		 */

@@ -1,19 +1,6 @@
 <?php
 
 /**
- * The file that defines the core plugin class
- *
- * A class definition that includes attributes and functions used across both the
- * public-facing side of the site and the admin area.
- *
- * @link       http://example.com
- * @since      1.0.0
- *
- * @package    tw_weather
- * @subpackage tw_weather/includes
- */
-
-/**
  * The core plugin class.
  *
  * This is used to define internationalization, admin-specific hooks, and
@@ -38,13 +25,8 @@ class TW_Weather_Ajax {
 	public $image_set = array('test');
 
 	private $acf;
-
-
-	// private $image_data = new stdClass();
-
 	
 	public function __construct(){
-		// echo 'From Ajax construct: ';
 	}
 
 	public function lr_weather_data() {
@@ -62,75 +44,97 @@ class TW_Weather_Ajax {
 		}else{
 			$conditions = $this->parse_conditions( $response );
 			
-			//get the id
+			//get the id from the response
 			$decoded = json_decode($response);
 			$id = $decoded->weather[0]->id;
+			// print_r( $decoded );
 
 			//get the acf condition based on the id
 			$acf_condition = $this->get_acf_condition($id);
 
-			// get image url based on the acf condition	
-			$image_url = $this->get_image_url($acf_condition);
+			// get an object that contains our acf condition and url	
+			$obj = $this->get_condition_object($acf_condition);
 
-			// $response = array_merge($conditions, $images);
+			$response = array_merge($obj, (array)$decoded);
+			// print_r( $response );
 			$response = json_encode($response, JSON_UNESCAPED_SLASHES);
 		}
 
 		//attempted fix for dataTyep:"json" not working. didn't work
 		// header( "Content-Type: application/json; charset=utf-8" );
-
-		// exit($response);
-		// exit($conditions);
 		wp_die($response);
 	}
 
-	private function get_image_url($acf_condition){
-		////// THIS WORKS FOR BRINGING IN ACF DATA ////////////
-		$acf = new TW_Weather_Acf;
-		$image_set = $acf->tw_get_fields();
-		print_r($image_set);
-		// return $image_set;
+	//get the url assigned to the weather condition
+	private function get_condition_object($acf_condition = null){		
+		// echo $acf_condition;
+		$url = '';
+		$fields = get_fields('options');
+		if($fields[$acf_condition]){
+			$url = $fields[$acf_condition];
+		}
+		// $url = $fields[$acf_condition];
+
+		//create 2 key value pairs
+		$array = array('acf_condition' => $acf_condition);
+		$array['acf_url'] = $url;
+		return $array;
 	}
 
-	private function get_acf_condition($condition_code){
+	private function get_acf_condition($condition_code = null){
+		// there are many more conditions than we want to draw headers for. (http://openweathermap.org/weather-conditions)
 		
+		// so here we map the openweather conditions to the ones 
+		// defined in our acf fields:
+		//	default
+		//	rainy
+		//	sunny
+		//	windy
+		//	snowy
+		//	hazy or foggy
+
+		//hard code codes for testing
+		$condition_code = 804;
+
 		$cond = 'default';
+
 		if (gettype($condition_code) != 'integer' ){
 			return $cond;
 		}
 
+		//for some conditions we only need the first number in the 3 digit string
 		$first_num = intval(  substr($condition_code, 0, 1)  );
-		echo($first_num);
 
 		if($first_num == 6 || 8){
 
 			switch ($condition_code){
 				case 611: 
-					$cond = 'sleet';
+					$cond = 'snowy';
 					break;
 				case 800:
-					$cond = 'clear';
+					$cond = 'default'; //clear = default
 					break;
 			}
 		}
 
 		if ($first_num == 6){
-			$cond = 'snow';
+			$cond = 'snowy';
 		}else if(   $condition_code == 905 || (  ($condition_code >= 951) && ($condition_code <= 962) )   )  {
-			$cond = 'wind';
-		}else if (  ($first_num >= 2)  &&  ($first_num <= 4)  ){
-			$cond = 'rain';
+			$cond = 'windy';
+		}else if (  ($first_num >= 2)  &&  ($first_num <= 5)  ){
+			$cond = 'rainy';
 		}else if ($first_num == 7) {
-			$cond = 'hazy';
+			$cond = 'hazy'; 
 		}else if ($first_num == 8){ 
-			$cond = 'clear';
+			$cond = 'cloudy'; 
 		}else {
 			$cond = 'default';
 		}
+		// echo $cond;
 		return $cond;
 	}
 
-	//get only the condition we want
+	//get the id and string for the condition
 	private function parse_conditions( $response = null) {
 		$obj = json_decode($response);
 		$cond['condition_code'] = $obj->weather[0]->id;
@@ -204,5 +208,3 @@ class TW_Weather_Ajax {
 		 return (json_last_error() == JSON_ERROR_NONE);
 	}
 }
-//instantiation not needed for ajax to show up - lr
-// new TW_Weather_Ajax();

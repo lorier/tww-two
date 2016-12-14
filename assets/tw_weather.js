@@ -30,7 +30,7 @@ jQuery(document).ready(function($){
 	 */
 
 	var weatherStatus = 'Getting current weather conditions...';
-	$('.header-image').prepend('<p class="status">' + weatherStatus + '</p>');
+	$('#primary').prepend('<p class="status">' + weatherStatus + '</p>');
 	var currentDate = new Date();
 	var month = currentDate.getMonth()+1;
 	var day = currentDate.getDate();
@@ -59,7 +59,11 @@ jQuery(document).ready(function($){
 				// weatherStatus = data;
 				weatherStatus = parseJson(data);
 				if(typeof weatherStatus === 'object'){
-					$('.header-image p.status').replaceWith('<p class="status">Today is ' + date +  '. Current Seattle weather at ' + time + ' is <br/><span class="details">' + weatherStatus.weather[0].main + ' (' + weatherStatus.weather[0].description + '). Temp: ' + parseInt(weatherStatus.main.temp) + '&deg; </span></p>');
+					$('#primary p.status').replaceWith('<p class="status">Today is ' + date +  '. Current Seattle weather at ' + time + ' is <br/><span class="details">' + weatherStatus.weather[0].main + ' (' + weatherStatus.weather[0].description + '). Temp: ' + parseInt(weatherStatus.main.temp) + '&deg; </span></p>')
+					
+					if (weatherStatus.acf_url.length > 0 ){
+						$('.status').append('<div class="acf_image"><img src="' + weatherStatus.acf_url + '"/><p>Image showing is: ' + weatherStatus.acf_condition + '</p></div>');
+					}
 				}
 			},
 			error: function(obj, status, error){
