@@ -26,7 +26,7 @@ class TW_Weather_Acf {
 				// print_r($row);
 
 				$key = key($row); //'default_image'
-				// echo $key;
+				echo $key;
 
 				$sub_field = $row[$key];
 				// print_r( $val ); //key value pairs of each subfield

@@ -39,6 +39,7 @@ class TW_Weather_Ajax {
 
 	private $acf;
 
+
 	// private $image_data = new stdClass();
 
 	
@@ -61,10 +62,17 @@ class TW_Weather_Ajax {
 		}else{
 			$conditions = $this->parse_conditions( $response );
 			
-			// get image data	
-			$images = $this->get_images();
+			//get the id
+			$decoded = json_decode($response);
+			$id = $decoded->weather[0]->id;
 
-			$response = array_merge($conditions, $images);
+			//get the acf condition based on the id
+			$acf_condition = $this->get_acf_condition($id);
+
+			// get image url based on the acf condition	
+			$image_url = $this->get_image_url($acf_condition);
+
+			// $response = array_merge($conditions, $images);
 			$response = json_encode($response, JSON_UNESCAPED_SLASHES);
 		}
 
@@ -76,17 +84,57 @@ class TW_Weather_Ajax {
 		wp_die($response);
 	}
 
-	private function get_images(){
+	private function get_image_url($acf_condition){
 		////// THIS WORKS FOR BRINGING IN ACF DATA ////////////
 		$acf = new TW_Weather_Acf;
 		$image_set = $acf->tw_get_fields();
-		return($image_set);
+		print_r($image_set);
+		// return $image_set;
+	}
+
+	private function get_acf_condition($condition_code){
+		
+		$cond = 'default';
+		if (gettype($condition_code) != 'integer' ){
+			return $cond;
+		}
+
+		$first_num = intval(  substr($condition_code, 0, 1)  );
+		echo($first_num);
+
+		if($first_num == 6 || 8){
+
+			switch ($condition_code){
+				case 611: 
+					$cond = 'sleet';
+					break;
+				case 800:
+					$cond = 'clear';
+					break;
+			}
+		}
+
+		if ($first_num == 6){
+			$cond = 'snow';
+		}else if(   $condition_code == 905 || (  ($condition_code >= 951) && ($condition_code <= 962) )   )  {
+			$cond = 'wind';
+		}else if (  ($first_num >= 2)  &&  ($first_num <= 4)  ){
+			$cond = 'rain';
+		}else if ($first_num == 7) {
+			$cond = 'hazy';
+		}else if ($first_num == 8){ 
+			$cond = 'clear';
+		}else {
+			$cond = 'default';
+		}
+		return $cond;
 	}
 
 	//get only the condition we want
 	private function parse_conditions( $response = null) {
 		$obj = json_decode($response);
-		$cond['condition'] = $obj->weather[0]->id;
+		$cond['condition_code'] = $obj->weather[0]->id;
+		$cond['condition']=$obj->weather[0]->main;
 
 	 	return $cond;
 	}
@@ -110,7 +158,7 @@ class TW_Weather_Ajax {
 		$cache_key = substr( 'lr_'.sha1($url) , 0, 44 );
 
 		// for dev purposes - quickly remove transient rows from db
-		// delete_transient( $cache_key );
+		delete_transient( $cache_key );
 
 		$response = get_transient( $cache_key );
 
